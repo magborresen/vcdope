@@ -1,21 +1,30 @@
 import re
+import pandas as pd
 
 class VCD():
-    def __init__(self):
-        self.working_file = None
+    """
+        Class used to parse a 4-state VCD file from
+        the Verilog standard 1364 2005.
+        A four state file can contain the following value changes:
+        1, 0, x, z - No strength information is provided.
+    """
+
+    def __init__(self, filename):
+        self.working_file = filename
         self.vcd_contents = {'header': {'scopes': {}}}
+        self.vcd_dump_df = None
         self.keywords = ['comment', 'timescale', 'date', 'upscope',
                          'var', 'scope', 'version']
-        self.var_keys = ['type', 'size', 'identifier', 'reference']
+        self.var_keys = ['type', 'size', 'identifier', 'reference', 'index']
         self.delimiters = r'\s+|\$'
 
-    def open_file(self, filename):
+    def open_file(self):
         """
             Docstring
         """
-        self.working_file = open(filename, 'r', encoding='utf-8')
+        self.working_file = open(self.working_file, 'r', encoding='utf-8')
 
-    def parse_header_section(self):
+    def parse_header_info(self):
         """
             Parse the header section of a Verilog VCD file dump
 
@@ -27,34 +36,26 @@ class VCD():
 
         var_count = 0
         in_scope = False
-        while True:
-            cur_line = self.working_file.readline().strip()
-            split_line = list(filter(None, re.split(self.delimiters, cur_line)))
-            #Check if the line only contains the keyword
-            if len(split_line) == 1 and split_line[0] in self.keywords:
-                keyword = split_line[0]
-                # Go to the next line to get the associated keyword value
-                cur_line = self.working_file.readline().strip()
-                keyword_value = cur_line
-            # Check if the line contains both keyword and data
-            elif len(split_line) > 1 and split_line[0] in self.keywords:
-                keyword = split_line[0]
-                end_line = split_line.index('end')
-                # If the keyword is a variable, we need to extract more data
-                if keyword == 'var':
-                    # Create a new dict to store the 4 pieces of var data
-                    keyword_value = dict(zip(self.var_keys, split_line[1:end_line]))
-                else:
-                    keyword_value = ' '.join(split_line[1:end_line])
-            # Stop the loop if we run out of header section
-            elif split_line[0] == "enddefinitions":
+        multi_line = []
+        for line in self.working_file:
+            if '$end' not in line:
+                multi_line.append(line.strip())
+                continue
+
+            if len(multi_line) == 0 and line.strip() != '$end':
+                split_line = line.strip().split(" ")[:-1]
+            else:
+                split_line = multi_line
+            multi_line = [] 
+
+            keyword = split_line[0].strip("$")
+            if keyword == "enddefinitions":
                 break
 
-            # If multiple scopes are included in the file, save the variables
-            # under each scope.
             if keyword == 'scope':
+                var_count = 0
                 in_scope = True
-                scope = keyword_value
+                scope = " ".join(split_line[1:])
                 self.vcd_contents['header']['scopes'][scope] = {}
                 continue
 
@@ -62,42 +63,36 @@ class VCD():
                 in_scope = False
                 continue
 
-            # Make sure we can save several variables as the keyword is always the same
             if in_scope:
                 if keyword == 'var':
+                    keyword_value = dict(zip(self.var_keys, split_line[1:]))
                     self.vcd_contents['header']['scopes'][scope][keyword + str(var_count)] = keyword_value
                     var_count += 1
                 else:
                     self.vcd_contents['header']['scopes'][scope][keyword] = keyword_value
             else:
-                if keyword == 'var':
-                    self.vcd_contents['header'][keyword + str(var_count)] = keyword_value
-                    var_count += 1
-                else:
-                    self.vcd_contents['header'][keyword] = keyword_value
+                keyword_value = " ".join(split_line[1:])
+                self.vcd_contents['header'][keyword] = keyword_value
 
-    def parse_variable_section(self):
+        self.vcd_dump_df = pd.DataFrame(self.vcd_contents['header']['scopes']['module shifter_mod']).T
+
+    def parse_node_info(self):
         """
-            Docstring
+            Parse the node information section of the VCD file
         """
         return None
 
-    def parse_dumpvars_section(self):
+    def parse_value_changes(self):
         """
-            Docstring
-        """
-        return None
-
-    def parse_value_change_section(self):
-        """
-            Docstring
+            Parse the value change section of the VCD file
         """
         return None
 
 
 
 if __name__ == "__main__":
-    parser = VCD()
-    parser.open_file("vcd_dump.vcd")
-    parser.parse_header_section()
-    print(parser.vcd_contents)
+    parser = VCD("vcd_dump_advanced.vcd")
+    parser.open_file()
+    parser.parse_header_info()
+    #print(parser.vcd_contents)
+    print(parser.vcd_dump_df)

@@ -1,0 +1,147 @@
+$comment
+	File created using the following command:
+		vcd files output.vcd 
+$end
+$date
+	Fri Jan 12 09:07:17 2000
+$end
+$version
+	ModelSim EE/PLUS 5.4
+$end
+$timescale
+	1ns
+$end
+$scope module shifter_mod $end
+$var wire 1 ! clk $end
+$var wire 1 " reset $end
+$var wire 1 # data_in $end
+$var wire 1 $ q [8] $end
+$var wire 1 % q [7] $end
+$var wire 1 & q [6] $end
+$var wire 1 ' q [5] $end
+$var wire 1 ( q [4] $end
+$var wire 1 ) q [3] $end
+$var wire 1 * q [2] $end
+$var wire 1 + q [1] $end
+$var wire 1 , q [0] $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+0!
+1"
+0#
+0$
+0%
+0&
+0'
+0(
+0)
+0*
+0+
+0,
+$end
+#100
+1!
+#150
+0!
+#200
+1!
+$dumpoff
+x!
+x"
+x#
+x$
+x%
+x&
+x'
+x(
+x)
+x*
+x+
+x,
+$end
+#300
+$dumpon
+1!
+0"
+1#
+0$
+0%
+
+0&
+0'
+0(
+0)
+0*
+0+
+1,
+$end
+#350
+0!
+#400
+1!
+1+
+#450
+0!
+#500
+1!
+1*
+#550
+0!
+#600
+1!
+1)
+#650
+0!
+#700
+1!
+1(
+#750
+0!
+#800
+1!
+1'
+#850
+0!
+#900
+1!
+1&
+#950
+0!
+#1000
+1!
+1%
+#1050
+0!
+#1100
+1!
+1$
+#1150
+0!
+1"
+0$
+0%
+0&
+0'
+0(
+0)
+0*
+0+
+0,
+#1200
+1!
+$dumpall
+1!
+1"
+1#
+0$
+0%
+0&
+0'
+0(
+0)
+0*
+0+
+0,
+$end
